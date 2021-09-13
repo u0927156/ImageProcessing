@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import skimage
 from skimage import io
 from skimage.util import img_as_ubyte
+from skimage import measure
+from skimage import color, morphology
+
 
 def make_im_grey(img):
     """
@@ -148,6 +151,10 @@ display_histogram(hist, bins)
 # %% 
 
 
+removed = morphology.remove_small_objects(np.round(thresholded_puppy).astype(int).astype(bool), 1000)
+
+new_regions = measure.label(removed.astype(int))
+io.imshow(new_regions)
 
 # %% 
 
@@ -227,3 +234,99 @@ for i in range(0, len(files)):
     level_hist = make_histogram(adapted_img, bins)
     save_histogram(level_hist, bins, title, adapted_histogram_file)
     
+    
+    removed = morphology.remove_small_objects(np.round(thresholded_img).astype(int).astype(bool), 100)
+
+    new_regions = measure.label(removed.astype(int))
+   
+    plt.imsave(folder_path+FileNameBases[i]+'_Regions'+file_type, new_regions)
+
+# %% 
+
+from skimage import exposure
+fire_file = f"D:\School\Fall 2021\ImageProcessing\ImageProcessing\Images\Fire.jpg"
+fire_img = io.imread(fire_file)
+   
+grey_fire = make_im_grey(fire_img)
+
+for i in [2, 4, 8, 16, 32, 64, 128, 256]:
+        
+    
+    equalized_pup = exposure.equalize_hist(grey_puppy, i)
+    to_save = folder_path + '\\Puppy_Histogram_Equalize_' + str(i) + '.png'
+    
+    io.imsave(to_save, img_as_ubyte(equalized_pup))
+    
+    
+    title = 'Puppy Histogram Adaptation with ' + str(i) + ' bins'
+    adapted_histogram_file = folder_path + '\\Puppy_Histogram_Equalize_Histogram_' + str(i) + '.png'
+    
+    adapted_hist = make_histogram(equalized_pup, bins)
+    
+    save_histogram(adapted_hist, bins, title, adapted_histogram_file)
+    
+    
+    
+    equalized_fire = exposure.equalize_hist(grey_fire, i)
+    to_save = folder_path + '\\Fire_Histogram_Equalize_' + str(i) + '.png'
+   
+    
+    title = 'Fire Histogram Adaptation with ' + str(i) + ' bins'
+    adapted_histogram_file = folder_path + '\\Fire_Histogram_Equalize_Histogram_' + str(i) + '.png'
+    
+    adapted_hist = make_histogram(equalized_fire, bins)
+    
+    save_histogram(adapted_hist, bins, title, adapted_histogram_file)
+    
+    
+    io.imsave(to_save, img_as_ubyte(equalized_fire))
+    
+# %% 
+from skimage.morphology import disk
+from skimage.filters import rank
+
+for i in [32, 64, 128, 256, 512, 1024, 2048]:       
+    footprint = disk(i)
+    
+    img = img_as_ubyte(grey_fire)
+    img_eq = rank.equalize(img, footprint)
+    
+    to_save = folder_path + '\\Fire_Local_Histogram_Equalize_' + str(i) + '.png'
+    
+    io.imsave(to_save, img_eq)
+    
+# %% 
+footprint = disk(128)
+
+img = img_as_ubyte(grey_puppy)
+img_eq = rank.equalize(img, footprint)
+   
+io.imshow(img_eq)
+
+img = img_as_ubyte(grey_puppy)
+img_eq = rank.equalize(img, footprint)
+
+to_save = folder_path + '\\Puppy_Local_Histogram_Equalize_' + str(i) + '.png'
+
+io.imsave(to_save, img_eq)
+
+# %% 
+xray_file = f"D:\School\Fall 2021\ImageProcessing\ImageProcessing\Images\\xray.png"
+xray_img = io.imread(xray_file)
+
+grey_xray = make_im_grey(xray_img)
+
+for i in [32, 64, 128, 256, 512, 1024, 2048]:       
+    footprint = disk(i)
+    
+    img = img_as_ubyte(grey_xray)
+    img_eq = rank.equalize(img, footprint)
+    
+    to_save = folder_path + '\\Xray_Local_Histogram_Equalize_' + str(i) + '.png'
+    
+    io.imsave(to_save, img_eq)
+    
+# %%
+
+io.imsave(folder_path+'\Xray_Grey.png', img_as_ubyte(grey_xray))
+
